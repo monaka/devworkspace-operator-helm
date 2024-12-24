@@ -26,7 +26,7 @@ jobs:
       - name: filter
         run: |
           for i in templates/*.yaml; do
-            sed -i -e '/namespace:/d' $i
+            sed -i -e '/^  namespace:/d' $i
             yq -i '.metadata.name = "{{ include \"..fullname\" . }}"' $i
           done
 
