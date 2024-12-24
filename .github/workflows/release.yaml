@@ -1,0 +1,42 @@
+name: Build and Push Container Image, Helm chart
+
+on:
+  push:
+    tags:
+      - 'v*'
+    
+jobs:
+  release:
+    name: Build and release.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: clean
+        run: rm -fr templates/*
+
+      - name: extract version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+
+      - name: fetch
+        run: |
+          curl -o- -L --no-progressbar --silent "https://github.com/devfile/devworkspace-operator/archive/refs/tags/v${{ env.VERSION }}.tar.gz | tar xf -
+          mv deploy/deployment/kubernetes/objects/* templates/
+
+      - name: filter
+        run: for i in templates/*.yaml; do sed -i -e '/namespace:/d' $i; done
+
+      - name: setup helm
+        uses: azure/setup-helm@v4
+
+      - name: lint
+        run: helm lint
+
+      - name: package
+        run: helm package "--app-version=${{ env.VERSION }}" "--version=${{ env.VERSION }}" .
+
+      - name: login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login "ghcr.io/${{ github.repository_owner }}" --username "${{ github.repository_owner }}" --password-stdin
+      
+      - name: Push the chart
+        run: helm push "./devworkspace-operator-${{ env.VERSION }}.tgz" "oci://ghcr.io/${{ github.repository_owner }}/chart"
