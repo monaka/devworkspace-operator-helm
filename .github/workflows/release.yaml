@@ -20,11 +20,15 @@ jobs:
 
       - name: fetch
         run: |
-          curl -o- -L --no-progress-meter --silent "https://github.com/devfile/devworkspace-operator/archive/refs/tags/v${{ env.VERSION }}.tar.gz" | tar xf -
-          mv deploy/deployment/kubernetes/objects/* templates/
+          curl -o- -L --no-progress-meter --silent "https://github.com/devfile/devworkspace-operator/archive/refs/tags/v${{ env.VERSION }}.tar.gz" | tar xzf -
+          mv "devworkspace-operator-${{ env.VERSION }}"/deploy/deployment/kubernetes/objects/* templates/
 
       - name: filter
-        run: for i in templates/*.yaml; do sed -i -e '/namespace:/d' $i; done
+        run: |
+          for i in templates/*.yaml; do
+            sed -i -e '/namespace:/d' $i
+            yq -i '.metadata.name = "{{ include \"..fullname\" . }}"' $i
+          done
 
       - name: setup helm
         uses: azure/setup-helm@v4
