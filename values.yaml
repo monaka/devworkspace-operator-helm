@@ -1,0 +1,18 @@
+# Default values for ..
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+replicaCount: 1
+
+devworkspaceController:
+  image:
+    pullPolicy: Always
+    repository: quay.io/devfile/devworkspace-controller
+    tag: next
+
+projectClone:
+  image:
+    repository: quay.io/devfile/project-clone
+    tag: next
+
