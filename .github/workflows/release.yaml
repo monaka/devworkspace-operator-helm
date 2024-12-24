@@ -12,9 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: clean
-        run: rm -fr templates/*
-
       - name: extract version
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
 
@@ -22,6 +19,9 @@ jobs:
         run: |
           curl -o- -L --no-progress-meter --silent "https://github.com/devfile/devworkspace-operator/archive/refs/tags/v${{ env.VERSION }}.tar.gz" | tar xzf -
           mv "devworkspace-operator-${{ env.VERSION }}"/deploy/deployment/kubernetes/objects/* templates/
+          mkdir crds/
+          mv templates/*.CustomResourceDefinition.yaml crds/
+          rm -r "devworkspace-operator-${{ env.VERSION }"
 
       - name: filter
         run: |
